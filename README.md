@@ -4,7 +4,7 @@ Simple Paint Like App Written in C++ using Raylib and Dear ImGui :).
 
 Demo:
 
-https://github.com/user-attachments/assets/1da3d9f3-ad02-440e-a641-a2139c966730
+https://github.com/user-attachments/assets/9715bd66-b878-4c1b-b2f5-3bc0f4b76757
 
 # How To Build
 

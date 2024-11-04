@@ -425,6 +425,26 @@ void Paint::Run()
         RenderAll();
         RenderUI();
 
+        if(IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))
+        {
+            if(IsKeyPressed(KEY_Z))
+            {
+                if(!shapes.empty())
+                {
+                    undoedShapes.push_back(shapes.back());
+                    shapes.pop_back();
+                }
+            }
+            else if(IsKeyPressed(KEY_Y))
+            {
+                if(!undoedShapes.empty())
+                {
+                    shapes.push_back(undoedShapes.back());
+                    undoedShapes.pop_back();
+                }
+            }
+        }
+
         if(IsMouseButtonDown(MOUSE_BUTTON_LEFT))
         {
             Vector2 currentPos = GetMousePosition();

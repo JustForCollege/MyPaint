@@ -1,4 +1,5 @@
 #pragma once
+#include <deque>
 #include <raylib.h>
 #include <vector>
 #include "shapes.hpp"
@@ -47,6 +48,7 @@ public:
     void Run();
 private:
     std::vector<ShapeObject*> shapes;
+    std::vector<ShapeObject*> undoedShapes;
     bool newDrawing;
     Shape currentShape;
     float brushSize;

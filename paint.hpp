@@ -60,6 +60,7 @@ private:
     Vector2 lineEnd;
     bool drawing;
     bool erasing;
+    bool filled;
     Rectangle lastBoundingBox;
     int thickness;
     Vector2 lastFreeHandPoint;

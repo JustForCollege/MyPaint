@@ -86,8 +86,6 @@ void Paint::RenderColorPicker()
     }
     if (ImGui::BeginPopup("mypicker"))
     {
-        ImGui::Text("MY CUSTOM COLOR PICKER WITH AN AMAZING PALETTE!");
-        ImGui::Separator();
         ImGui::ColorPicker4("##picker", (float*)&color, misc_flags | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview);
         ImGui::SameLine();
 
@@ -205,6 +203,9 @@ void Paint::RenderUI()
         erasing = true;
     }
     ImGui::SameLine();
+    ImGui::Checkbox("Filled", &filled);
+    ImGui::SameLine();
+
     RenderColorPicker();
     ImGui::SameLine();
     ImGui::SliderInt("Thickness", &thickness, 0, 100, "%d", ImGuiSliderFlags_None);
@@ -276,7 +277,10 @@ void Paint::HandleDrawCircle(Vector2 currentPos)
             lastBoundingBox.y + lastBoundingBox.height,
         });
 
-        DrawRing(center, radius, radius + thickness, 0, 360, 0, currentColor);
+        if(filled)
+            DrawCircleV(center, radius, currentColor);
+        else
+            DrawRing(center, radius, radius + thickness, 0, 360, 0, currentColor);
     }
 }
 
@@ -295,7 +299,10 @@ void Paint::HandleDrawRectangle(Vector2 currentPos)
         auto height = Vector2Distance(boundingBoxStart, bottomLeft);
         auto width = Vector2Distance(bottomLeft, currentPos);
         lastBoundingBox = { boundingBoxStart.x, boundingBoxStart.y, width, height };
-        DrawRectangleLinesEx({lastBoundingBox.x, lastBoundingBox.y, lastBoundingBox.width, lastBoundingBox.height}, thickness, currentColor);
+        if(filled)
+            DrawRectangleV({lastBoundingBox.x, lastBoundingBox.y}, {lastBoundingBox.width, lastBoundingBox.height}, currentColor);
+        else
+            DrawRectangleLinesEx({lastBoundingBox.x, lastBoundingBox.y, lastBoundingBox.width, lastBoundingBox.height}, thickness, currentColor);
     }
 }
 
@@ -313,8 +320,11 @@ void Paint::HandleDrawTriangle(Vector2 currentPos)
         Vector2 normal { triangleTop.x, currentPos.y  };
         auto rightNormal = Vector2Distance(normal, currentPos);
         Vector2 left { currentPos.x - 2*rightNormal, currentPos.y  };
-        DrawTriangleLines(triangleTop, left, currentPos, currentColor);
-        lastTriangle = { triangleTop, left, currentPos, currentColor };
+        if(filled)
+            DrawTriangle(triangleTop, left, currentPos, currentColor);
+        else
+            DrawTriangleLines(triangleTop, left, currentPos, currentColor);
+        lastTriangle = { triangleTop, left, currentPos, currentColor, filled };
     }
 }
 
@@ -341,12 +351,20 @@ void Paint::HandleDrawEllipse(Vector2 currentPos)
             lastBoundingBox.y + lastBoundingBox.height/2,
         };
 
-        float radius = Vector2Distance(center, {
+        float radiusV = Vector2Distance(center, {
             lastBoundingBox.x + lastBoundingBox.width/2,
             lastBoundingBox.y + lastBoundingBox.height,
         });
 
-        DrawEllipseLines(center.x, center.y, radius, radius + thickness, currentColor);
+        float radiusH = Vector2Distance(
+            {lastBoundingBox.x, lastBoundingBox.y + lastBoundingBox.width/2},
+            center
+        );
+
+        if(filled)
+            DrawEllipse(center.x, center.y, radiusH, radiusV, currentColor);
+        else
+            DrawEllipseLines(center.x, center.y, radiusH, radiusV, currentColor);
     }
 }
 
@@ -375,13 +393,19 @@ void Paint::RenderAll()
             case Shape::Rectangle:
             {
                 Rect* rect = (Rect*)shape->shape;
-                DrawRectangleLinesEx({rect->x, rect->y, rect->width, rect->height}, rect->thickness, rect->color);
+                if(rect->filled)
+                    DrawRectangleV({rect->x, rect->y}, {rect->width, rect->height}, rect->color);
+                else
+                    DrawRectangleLinesEx({rect->x, rect->y, rect->width, rect->height}, rect->thickness, rect->color);
             } break;
 
             case Shape::Circle:
             {
                 Circle* circle = (Circle*)shape->shape;
-                DrawRing(circle->center, circle->radius, circle->radius + circle->thickness, 0, 360, 0, circle->color);
+                if(circle->filled)
+                    DrawCircleV(circle->center, circle->radius, circle->color);
+                else
+                    DrawRing(circle->center, circle->radius, circle->radius + circle->thickness, 0, 360, 0, circle->color);
             } break;
 
             case Shape::Line:
@@ -393,13 +417,19 @@ void Paint::RenderAll()
             case Shape::Ellipse:
             {
                 Ellipse* ellipse = (Ellipse*)shape->shape;
-                DrawEllipseLines(ellipse->center.x, ellipse->center.y, ellipse->radiusH, ellipse->radiusV , ellipse->color);
+                if(ellipse->filled)
+                    DrawEllipse(ellipse->center.x, ellipse->center.y, ellipse->radiusH, ellipse->radiusV , ellipse->color);
+                else
+                    DrawEllipseLines(ellipse->center.x, ellipse->center.y, ellipse->radiusH, ellipse->radiusV , ellipse->color);
             } break;
 
             case Shape::Triangle:
             {
                 Triangle* triangle = (Triangle*)shape->shape;
-                DrawTriangleLines(triangle->v1, triangle->v2, triangle->v3, triangle->color);
+                if(triangle->filled)
+                    DrawTriangle(triangle->v1, triangle->v2, triangle->v3, triangle->color);
+                else
+                    DrawTriangleLines(triangle->v1, triangle->v2, triangle->v3, triangle->color);
             } break;
 
             case Shape::FreeHand:
@@ -491,13 +521,14 @@ void Paint::Run()
                 {
                     auto shape = new ShapeObject();
                     shape->shapeKind = Shape::Rectangle;
-                        shape->shape = new Rect({
+                    shape->shape = new Rect({
                         lastBoundingBox.x,
                         lastBoundingBox.y,
                         lastBoundingBox.width,
                         lastBoundingBox.height,
                         currentColor,
                         thickness,
+                        filled,
                     });
 
                     shapes.push_back(shape);
@@ -505,7 +536,6 @@ void Paint::Run()
                 } break;
 
                 case Shape::Circle:
-                case Shape::Ellipse:
                 {
                     Vector2 center
                     {
@@ -518,34 +548,50 @@ void Paint::Run()
                         lastBoundingBox.y + lastBoundingBox.height,
                     });
 
-                    if(currentShape == Shape::Circle)
+                    auto shape = new ShapeObject();
+
+                    shape->shapeKind = Shape::Circle;
+                        shape->shape = new Circle(
+                        center,
+                        radius,
+                        currentColor,
+                        thickness,
+                        filled
+                    );
+
+                    shapes.push_back(shape);
+                } break;
+
+                case Shape::Ellipse:
+                {
+                    Vector2 center
                     {
-                                auto shape = new ShapeObject();
+                        lastBoundingBox.x + lastBoundingBox.width/2,
+                        lastBoundingBox.y + lastBoundingBox.height/2,
+                    };
 
-                        shape->shapeKind = Shape::Circle;
-                                shape->shape = new Circle(
-                           center,
-                           radius,
-                           currentColor,
-                           thickness
-                        );
+                    float radiusV = Vector2Distance(center, {
+                        lastBoundingBox.x + lastBoundingBox.width/2,
+                        lastBoundingBox.y + lastBoundingBox.height,
+                    });
 
-                        shapes.push_back(shape);
-                    }
-                    else
-                    {
-                      auto shape = new ShapeObject();
-                      shape->shapeKind = Shape::Ellipse;
-                      shape->shape = new Ellipse(
-                         center,
-                         radius,
-                         radius+thickness,
-                         currentColor,
-                         thickness
-                      );
+                    float radiusH = Vector2Distance(
+                        {lastBoundingBox.x, lastBoundingBox.y + lastBoundingBox.width/2},
+                        center
+                    );
 
-                      shapes.push_back(shape);
-                    }
+                    auto shape = new ShapeObject();
+                    shape->shapeKind = Shape::Ellipse;
+                    shape->shape = new Ellipse(
+                       center,
+                       radiusH,
+                       radiusV,
+                       currentColor,
+                       thickness,
+                       filled
+                    );
+                    shapes.push_back(shape);
+
                 } break;
 
                 case Shape::Line:
@@ -572,7 +618,7 @@ void Paint::Run()
                        lastTriangle.v1,
                        lastTriangle.v2,
                        lastTriangle.v3,
-                       currentColor);
+                       currentColor, filled);
 
                     shapes.push_back(shape);
 

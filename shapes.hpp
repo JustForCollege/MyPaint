@@ -19,9 +19,10 @@ struct Rect
     float height;
     Color color;
     int thickness;
+    bool filled;
 
-    Rect(float x, float y, float width, float height, Color color, int thickness)
-        : x(x), y(y), width(width), height(height), color(color), thickness(thickness) {}
+    Rect(float x, float y, float width, float height, Color color, int thickness, bool filled)
+        : x(x), y(y), width(width), height(height), color(color), thickness(thickness), filled(filled) {}
 };
 
 struct Circle
@@ -30,9 +31,10 @@ struct Circle
     float radius;
     Color color;
     int thickness;
+    bool filled;
 
-    Circle(Vector2 center, float radius, Color color, int thickness)
-        : center(center), radius(radius), color(color), thickness(thickness) {}
+    Circle(Vector2 center, float radius, Color color, int thickness, bool filled)
+        : center(center), radius(radius), color(color), thickness(thickness), filled(filled) {}
 };
 
 struct Triangle
@@ -41,10 +43,11 @@ struct Triangle
     Vector2 v2;
     Vector2 v3;
     Color color;
+    bool filled;
 
     Triangle() = default;
-    Triangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color)
-        : v1(v1), v2(v2), v3(v3), color(color) {}
+    Triangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color, bool filled)
+        : v1(v1), v2(v2), v3(v3), color(color), filled(filled) {}
 };
 
 struct Ellipse
@@ -54,9 +57,10 @@ struct Ellipse
     float radiusV;
     Color color;
     int thickness;
+    bool filled;
 
-    Ellipse(Vector2 center, float radiusH, float radiusV, Color color, int thickness)
-        : center(center), radiusH(radiusH), radiusV(radiusV), color(color), thickness(thickness) {}
+    Ellipse(Vector2 center, float radiusH, float radiusV, Color color, int thickness, bool filled)
+        : center(center), radiusH(radiusH), radiusV(radiusV), color(color), thickness(thickness), filled(filled) {}
 };
 
 struct Line

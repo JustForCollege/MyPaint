@@ -46,36 +46,19 @@ public:
     void RenderUI();
     void Run();
 private:
+    std::vector<ShapeObject*> shapes;
     bool newDrawing;
     Shape currentShape;
     float brushSize;
     Color currentColor;
-
-    Color freeHandStartColor;
-
     Vector2 triangleTop;
     Triangle lastTriangle;
-
     Vector2 boundingBoxStart;
     Vector2 lineStart;
     Vector2 lineEnd;
-
     bool drawing;
-
     bool erasing;
-
     Rectangle lastBoundingBox;
-
-    std::vector<ShapeObject*> shapes;
-
-    std::vector<Rect> rectangles;
-    std::vector<Circle> circles;
-    std::vector<Triangle> triangles;
-    std::vector<Ellipse> ellipses;
-    std::vector<Line> lines;
-
     int thickness;
-
     Vector2 lastFreeHandPoint;
-    std::vector<FreeHandPoint> freeHandPoints;
 };

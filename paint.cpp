@@ -219,9 +219,6 @@ void Paint::HandleDrawFreeHand(Vector2 currentPos)
     float spacing = brushSize/2;
     if(newDrawing)
     {
-        freeHandPoints.push_back({currentPos, currentColor, thickness});
-        auto zIndex = g_zIndex++;
-
         auto shape = new ShapeObject();
         shape->shapeKind = Shape::FreeHand;
         shape->shape = new FreeHandPoint(currentPos, currentColor, thickness);
@@ -238,8 +235,6 @@ void Paint::HandleDrawFreeHand(Vector2 currentPos)
 
             for(auto lerpedp: lerped)
             {
-                freeHandPoints.push_back({ lerpedp, currentColor, thickness });
-
                 auto shape = new ShapeObject();
                 shape->shapeKind = Shape::FreeHand;
                 shape->shape = new FreeHandPoint(lerpedp, currentColor, thickness);
@@ -468,7 +463,7 @@ void Paint::Run()
             // NASTY TRICK
             Vector2 mousePos = GetMousePosition();
             if(mousePos.y <= toolbarPadding)
-                goto render;
+                goto endRendering;
 
             switch(currentShape)
             {
@@ -519,10 +514,9 @@ void Paint::Run()
                     }
                     else
                     {
-                            auto shape = new ShapeObject();
-
+                      auto shape = new ShapeObject();
                       shape->shapeKind = Shape::Ellipse;
-                            shape->shape = new Ellipse(
+                      shape->shape = new Ellipse(
                          center,
                          radius,
                          radius+thickness,
@@ -536,7 +530,7 @@ void Paint::Run()
 
                 case Shape::Line:
                 {
-                        auto shape = new ShapeObject();
+                    auto shape = new ShapeObject();
 
                     shape->shapeKind = Shape::Line;
                         shape->shape = new Line(
@@ -551,7 +545,7 @@ void Paint::Run()
 
                 case Shape::Triangle:
                 {
-                        auto shape = new ShapeObject();
+                    auto shape = new ShapeObject();
 
                     shape->shapeKind = Shape::Triangle;
                         shape->shape = new Triangle(
@@ -570,7 +564,7 @@ void Paint::Run()
             newDrawing = true;
         }
 
-render:
+endRendering:
         rlImGuiEnd();
         EndDrawing();
     }
